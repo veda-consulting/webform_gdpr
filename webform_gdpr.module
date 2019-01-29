@@ -1,0 +1,120 @@
+<?php
+/**
+ * @file webform_gdpr.module
+ */
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function webform_gdpr_module_implements_alter(&$implementations, $hook) {
+  $k = 'webform_gdpr';
+  if ( $hook == 'form_alter' ) {
+    // Ensure form_alter hook implementation is invoked after webform_civicrm.
+    if( isset($implementations[$k]) ) {
+      $group = $implementations[$k];
+      unset($implementations[$k]);
+      $implementations[$k] = $group;
+    }
+  }
+}
+
+/**
+ * Implements hook_webform_component_info()
+ */
+function webform_gdpr_webform_component_info() {
+  $components = array();
+
+  $components['gdpr'] = array(
+    'label' => t('GDPR'),
+    'description' => t('Terms & Conditions / Data Policy'),
+    'file' => 'includes/webform_gdpr_component.inc',
+    'value' => 1,
+    'conditional_type' => 'select',
+    'features' => array(
+      'analysis' => FALSE,
+      'csv' => FALSE,
+      'default_value' => FALSE,
+      'description' => TRUE,
+      'email' => TRUE,
+      'email_address' => 'FALSE',
+      'email_name' => FALSE,
+      'required' => TRUE,
+      'title' => TRUE,
+      'title_display' => TRUE,
+      'title_inline' => TRUE,
+    ),
+  );
+  return $components;
+}
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter() for a webform_client_form.
+ */
+function webform_gdpr_form_webform_client_form_alter(&$form, &$form_state) {
+  if ($components = webform_gdpr_get_components($form['#node'])) {
+    $form['#submit'][] = 'webform_gdpr_submit';
+  }
+}
+
+/**
+ * Submit callback for webform.
+ */
+function webform_gdpr_submit(&$form, &$form_state) {
+  if (!empty($form_state['save_draft']) || empty($form_state['webform_completed'])) {
+    return;
+  }
+  $components = webform_gdpr_get_components($form['#node']);
+  if (!$components) {
+    return;
+  }
+
+  // Load the created submission to get contacts.
+  $sid = !empty($form_state['values']['details']['sid']) ? $form_state['values']['details']['sid'] : NULL;
+  $nid = !empty($form['#node']->nid) ? $form['#node']->nid : NULL;
+  if ($sid && $nid) {
+    $submission = webform_get_submission($nid, $sid);
+  }
+  if (empty($submission->civicrm['contact'])) {
+    return;
+  }
+  $contacts = $submission->civicrm['contact'];
+  foreach ($components as $cid => $component) {
+    if (!empty($submission->$cid)) {
+      $contact_idx = $component['extra']['contact'];
+      $contact_id = !empty($contacts[$contact_idx]['id']) ? $contacts[$contact_idx]['id'] : 0;
+      if (!$contact_id) {
+        continue;
+      }
+      if (!empty($component['extra']['enable_data_policy'])) {
+        WebformGdpr::recordAcceptance($contact_id);
+      }
+      if (!empty($component['extra']['enable_tc_event'])) {
+        WebformGdpr::recordAcceptance($contact_id, 'Event', $component['extra']['tc_event']);
+      }
+      if (!empty($component['extra']['enable_tc_contribution'])) {
+        WebformGdpr::recordAcceptance($contact_id, 'ContributionPage', $component['extra']['tc_contribution']);
+      }
+    }
+  }
+}
+
+/**
+ * Returns gdpr components for a webform.
+ *
+ * @param stdObject $node
+ *   Webform node.
+ *
+ * @return array
+ *   Gdpr component definitions, keyed by component id.
+ */
+function webform_gdpr_get_components($node) {
+  $gdpr_components = array();
+  if (!empty($node->webform['components'])) {
+    foreach ($node->webform['components'] as $cid => $component) {
+      if ($component['type'] == 'gdpr') {
+        $gdpr_components[$cid] = $component;
+      }
+    }
+  }
+  return $gdpr_components;
+}

@@ -1,0 +1,9 @@
+name = Webform GDPR
+description = Provides a GDPR/Terms & Conditions webform component using the CiviCRM GDPR extension.
+core = 7.x
+project = GDPR
+dependencies[] = civicrm
+dependencies[] = webform
+dependencies[] = webform_civicrm
+
+files[] = includes/webform_gdpr.inc

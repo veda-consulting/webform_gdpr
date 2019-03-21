@@ -44,6 +44,25 @@ function webform_gdpr_webform_component_info() {
       'title_inline' => TRUE,
     ),
   );
+  $components['gdpr_comms_prefs'] = array(
+    'label' => t('GDPR Comms Prefs'),
+    'description' => t('Communications Preferences'),
+    'file' => 'includes/webform_gdpr_comms_prefs_component.inc',
+    'value' => 1,
+    'features' => array(
+      'analysis' => FALSE,
+      'csv' => FALSE,
+      'default_value' => FALSE,
+      'description' => TRUE,
+      'email' => TRUE,
+      'email_address' => 'FALSE',
+      'email_name' => FALSE,
+      'required' => TRUE,
+      'title' => TRUE,
+      'title_display' => TRUE,
+      'title_inline' => TRUE,
+    ),
+  );
   return $components;
 }
 
@@ -79,7 +98,7 @@ function webform_gdpr_submit(&$form, &$form_state) {
   }
   $contacts = $submission->civicrm['contact'];
   foreach ($components as $cid => $component) {
-    if (!empty($submission->$cid)) {
+    if (!empty($submission->data[$cid])) {
       $contact_idx = $component['extra']['contact'];
       $contact_id = !empty($contacts[$contact_idx]['id']) ? $contacts[$contact_idx]['id'] : 0;
       if (!$contact_id) {

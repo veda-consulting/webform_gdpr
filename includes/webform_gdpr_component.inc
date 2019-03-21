@@ -2,7 +2,7 @@
 /**
  * @file wf_component_gdpr.inc
  *
- * Defines a component for webform.
+ * Defines a Terms and Conditions / Data Policy component for webform.
  */
 
 /**
@@ -177,19 +177,10 @@ function _webform_render_gdpr($component, $value = NULL, $filter = TRUE) {
   $label = filter_xss($label);
   $node = isset($component['nid']) ? node_load($component['nid']) : NULL;
   $element = array(
-    '#title' => $filter ? webform_filter_xss($component['name']) : $component['name'],
-    '#title_display' => $component['extra']['title_display'] ? $component['extra']['title_display'] : 'before',
-    '#required' => $component['required'],
-    '#weight' => $component['weight'],
-    '#description' => $filter ? webform_filter_descriptions($component['extra']['description'], $node) : $component['extra']['description'],
-    '#theme_wrappers' => array('webform_element'),
-    '#translatable' => array('title', 'description', 'options'),
-    '#type' => 'container',
-  //  '#tree' => FALSE,
-  );
-  $element = array(
     '#type' => 'checkbox',
     '#title' => $label,
+    '#weight' => $component['weight'],
+    '#description' => $filter ? webform_filter_descriptions($component['extra']['description'], $node) : $component['extra']['description'],
     '#default_value' => $value ? 'checked' : NULL,
     '#return_value' => 1,
     '#required' => $component['required'],

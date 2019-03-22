@@ -20,6 +20,8 @@
 		}
 		function processOptOutGroups() {
 		   var optOuts = getOptOutChannels();
+		   var groupsDisabled = FALSE;
+		   $('.communications-preferences-group-status-msg').remove();
 		   groupsChk.each(function() {
 			  // $('.cp-group-status').remove();
 			  var channels = $(this).data('channels');
@@ -27,7 +29,6 @@
 
 			  if (channels && remaining.length == 0) {
 				  if ($(this).val()) {
-			      //  $(this).after('<span class="cp-group-status description">Removed from this group because there are no communication channels selected.</span>');
 		          }
 				  $(this).attr('checked', false);
 				  $(this).attr('disabled', 1);

@@ -39,7 +39,7 @@ class WebformGDPRCommsPrefs {
       $channel_elems = array(
         '#type' => 'fieldset',
         '#title' => $general_settings['page_title'],
-        '#description' => $general_settings['channels_intro'],
+        '#description' => filter_xss($general_settings['channels_intro']),
         '#attributes' => ['class' => ['gdpr-comms-prefs-channels-wrapper']],
       );
       $contact = self::getLoggedInContact();
@@ -76,7 +76,7 @@ class WebformGDPRCommsPrefs {
       $group_elems = array(
         '#type' => 'fieldset',
         '#title' => $general_settings['groups_heading'],
-        '#description' => $general_settings['groups_intro'], 
+        '#description' => filter_xss($general_settings['groups_intro']), 
         '#attributes' => ['class' => ['gdpr-comms-prefs-groups-wrapper']],
       );
       // Convenience function to extract channels.
@@ -95,7 +95,7 @@ class WebformGDPRCommsPrefs {
         if (empty($group_setting['group_enable'])) {
           continue;
         }
-        $description = $group_setting['group_description']; 
+        $description = filter_xss($group_setting['group_description']); 
         // @todo: provide user settings for group-channel display.
         // Channels are available as a property of the element, as a html data property and in the description.
         $grp_chans = $group_channels($group_setting);

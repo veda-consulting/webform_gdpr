@@ -185,6 +185,7 @@ function _webform_render_gdpr($component, $value = NULL, $filter = TRUE) {
     '#return_value' => 1,
     '#required' => $component['required'],
     '#theme_wrappers' => array('webform_element'),
+    '#element_validate' => array('webform_gdpr_validate_gdpr'),
   );
   if (!empty($component['#required'])) {
     $element['#attributes']['required'] = 'required';

@@ -19,6 +19,7 @@ class WebformGDPRCommsPrefs {
    * @return array
    */
   public static function render($component, $value = NULL, $filter = TRUE) {
+    
     $component_settings = $component['extra']['comms_prefs'];
     $use_channels = !empty($component_settings['use_channels']);
     $use_groups = !empty($component_settings['use_groups']);
@@ -39,6 +40,7 @@ class WebformGDPRCommsPrefs {
         '#type' => 'fieldset',
         '#title' => $general_settings['page_title'],
         '#description' => $general_settings['channels_intro'],
+        '#attributes' => ['class' => ['gdpr-comms-prefs-channels-wrapper']],
       );
       $contact = self::getLoggedInContact();
       
@@ -56,6 +58,7 @@ class WebformGDPRCommsPrefs {
           '#required' => TRUE,
           '#prefix' => '<div class="webform-container-inline">',
           '#suffix' => '</div>',
+          '#attributes' => ['data-channel' => $channel],
         ); 
         // Set default values based on contact properties.
         // We can only really determine the negatives.
@@ -74,6 +77,7 @@ class WebformGDPRCommsPrefs {
         '#type' => 'fieldset',
         '#title' => $general_settings['groups_heading'],
         '#description' => $general_settings['groups_intro'], 
+        '#attributes' => ['class' => ['gdpr-comms-prefs-groups-wrapper']],
       );
       // Convenience function to extract channels.
       $group_channels = function($group) {

@@ -74,7 +74,8 @@ function webform_gdpr_webform_component_info() {
 function webform_gdpr_form_webform_client_form_alter(&$form, &$form_state) {
   if ($components = webform_gdpr_get_components($form['#node'])) {
     $form['#submit'][] = 'webform_gdpr_submit';
-  }
+    $form['#attached']['js'][] = drupal_get_path('module', 'webform_gdpr') . '/js/webform_gdpr.js';
+   }
 }
 
 /**

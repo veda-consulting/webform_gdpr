@@ -59,8 +59,10 @@ class WebformGDPRCommsPrefs {
         ); 
         // Set default values based on contact properties.
         // We can only really determine the negatives.
-        $is_no = !empty($contact['do_not_' . $channel]) || $channel == 'email' && !empty($contact['is_opt_out']);
-        if ($is_no) {
+        $is_no = !empty($contact['do_not_' . $channel]);
+        $is_opt_out = $channel == 'email' && !empty($contact['is_opt_out']);
+        $is_no_post = $channel == 'post' && !empty($contact['do_not_mail']);
+        if ($is_no || $is_opt_out || $is_no_post) {
           $channel_elems[$channel]['#default_value'] = 'NO'; 
         }
       }

@@ -1,6 +1,8 @@
 <?php
 /**
  * @file webform_gdpr.module
+ * 
+ * Module hooks and callbacks.
  */
 
 /**
@@ -76,14 +78,47 @@ function webform_gdpr_form_webform_client_form_alter(&$form, &$form_state) {
 }
 
 /**
+ * Validation callback function for Comms Prefs element.
+ * 
+ */
+function webform_gdpr_validate_comms_prefs($element, &$form_state) {
+  // Which groups have been selected.
+  if (empty($element['groups'])) {
+    return;
+  }
+  $selected_channels = [];
+  foreach (element_children($element['channels']) as $key) {
+    $elem = $element['channels'][$key];
+    if ($elem['#value'] == 'YES') {
+      $selected_channels[] = $key;
+    }
+  }
+  foreach (element_children($element['groups']) as $key) {
+    // If the group is selected then at least one of it's channels
+    // should also be selected.
+    $elem = $element['groups'][$key];
+    if (!empty($elem['#value'])) {
+      $channels = $elem['#channels'];
+      if ($channels && empty(array_intersect($channels, $selected_channels))) {
+        $msg = t('You have selected @group but have opted out of all the channels that it uses.', array(
+          '@group' => $elem['#title'],
+        ));   
+        form_error($elem, $msg);
+      }
+    }
+  }
+}
+
+/**
  * Submit callback for webform.
  */
 function webform_gdpr_submit(&$form, &$form_state) {
   if (!empty($form_state['save_draft']) || empty($form_state['webform_completed'])) {
     return;
   }
-  $components = webform_gdpr_get_components($form['#node']);
-  if (!$components) {
+  $components = webform_gdpr_get_components($form['#node'], 'gdpr');
+  $comms_prefs_components = webform_gdpr_get_components($form['#node'], 'gdpr_comms_prefs');
+  if (!$components || !$comms_prefs_components) {
     return;
   }
 
@@ -97,6 +132,7 @@ function webform_gdpr_submit(&$form, &$form_state) {
     return;
   }
   $contacts = $submission->civicrm['contact'];
+  // Handle gdpr components. 
   foreach ($components as $cid => $component) {
     if (!empty($submission->data[$cid])) {
       $contact_idx = $component['extra']['contact'];
@@ -115,22 +151,38 @@ function webform_gdpr_submit(&$form, &$form_state) {
       }
     }
   }
+  // Handle comms prefs components.
+  foreach ($comms_prefs_components as $cid => $component) {
+    $values = $submission->data[$cid];
+    $values = $values[0];
+    if (is_string($values)) {
+      $values = unserialize($values);
+    }
+    $contact_id = $contacts[1]['id'];
+    WebformGDPRCommsPrefs::processCommsPrefs($component, $values, $contact_id);    
+  }
 }
+
+
 
 /**
  * Returns gdpr components for a webform.
  *
  * @param stdObject $node
  *   Webform node.
+ * @param string $type
+ *  Optional filter by component type.
+ *   gdpr|gdpr_comms_prefs
  *
  * @return array
  *   Gdpr component definitions, keyed by component id.
  */
-function webform_gdpr_get_components($node) {
-  $gdpr_components = array();
+function webform_gdpr_get_components($node, $type = '') {
+  $gdpr_components = [];
+  $types = $type ? [$type] : ['gdpr', 'gdpr_comms_prefs'];
   if (!empty($node->webform['components'])) {
     foreach ($node->webform['components'] as $cid => $component) {
-      if ($component['type'] == 'gdpr') {
+      if (in_array($component['type'], $types)) {
         $gdpr_components[$cid] = $component;
       }
     }

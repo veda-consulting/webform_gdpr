@@ -69,6 +69,7 @@ class WebformGdpr {
     if (!$contact_id) {
       return;
     }
+    // @todo: handle setting to use default Terms and conditions.
     if ($type == 'Event') {
       $helper = new CRM_Gdpr_SLA_Event($entity_id);
       return $helper->recordAcceptance($contact_id);

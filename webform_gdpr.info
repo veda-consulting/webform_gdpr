@@ -7,3 +7,4 @@ dependencies[] = webform
 dependencies[] = webform_civicrm
 
 files[] = includes/webform_gdpr.inc
+files[] = includes/webform_gdpr_comms_prefs.inc

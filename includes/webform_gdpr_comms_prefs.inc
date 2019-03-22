@@ -19,8 +19,9 @@ class WebformGDPRCommsPrefs {
    * @return array
    */
   public static function render($component, $value = NULL, $filter = TRUE) {
-    $use_channels = !empty($component['extra']['use_channels']);
-    $use_groups = !empty($component['extra']['use_groups']);
+    $component_settings = $component['extra']['comms_prefs'];
+    $use_channels = !empty($component_settings['use_channels']);
+    $use_groups = !empty($component_settings['use_groups']);
     $settings = U::getSettings();
     $general_settings = $settings[U::SETTING_NAME];
     
@@ -45,11 +46,13 @@ class WebformGDPRCommsPrefs {
         if (empty($general_settings['channels']['enable_' . $channel])) {
           continue;
         }
+        $elem_type = !empty($component_settings['channel_element_type']) ? $component_settings['channel_element_type'] : 'radios';
+        $options = array('YES' => t('Yes'), 'NO' => t('No'));
         $channel_elems[$channel] = array(
-          '#type' => 'radios',
+          '#type' => $elem_type,
           '#title' => $label, 
           // Option values compatible with the form elements provided by the extension.
-          '#options' => array('YES' => t('Yes'), 'NO' => t('No')), 
+          '#options' => $options, 
           '#required' => TRUE,
           '#prefix' => '<div class="webform-container-inline">',
           '#suffix' => '</div>',
@@ -181,7 +184,7 @@ class WebformGDPRCommsPrefs {
    */
   public static function getLoggedInContact() {
     $cid = CRM_Core_Session::getLoggedInContactID();
-    $return;
+    $return = [];
     if ($cid) {
       $result = self::crm('Contact', 'get', ['id' => $cid, 'sequential' => 0]);
       if (!empty($result['values'][$cid])) {
@@ -205,8 +208,9 @@ class WebformGDPRCommsPrefs {
       // Unable to process.
       return false;
     }
-    $use_channels = !empty($component['extra']['use_channels']);
-    $use_groups = !empty($component['extra']['use_groups']);
+    $component_settings = $component['extra']['comms_prefs'];
+    $use_channels = !empty($component_settings['use_channels']);
+    $use_groups = !empty($component_settings['use_groups']);
     $settings = U::getSettings();
     $channel_settings = $settings[U::SETTING_NAME];
     

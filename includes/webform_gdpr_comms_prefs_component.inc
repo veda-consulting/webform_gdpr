@@ -9,27 +9,57 @@
  * Implements _webform_edit_component
  **/
 function _webform_edit_gdpr_comms_prefs($component) {
+   // Only allow one Comms Prefs on a webform.
+   $node = node_load($component['nid']);
+   $comms_prefs_components = webform_gdpr_get_components($node, 'gdpr_comms_prefs');
+   $disable = FALSE;
+   if ($comms_prefs_components) {
+     foreach ($comms_prefs_components as $other_component) {
+       if (empty($component['cid']) || $other_component['cid'] != $component['cid']) {
+         $disable = TRUE;
+       }
+     }
+   }
    // @todo: prevent multiple instances of this component on the same form.
    // Add a notice 
    civicrm_initialize();
+   if (!$disable) {
    $notice = t('<p>This component will add elements on the webform, using the Communications Preferences settings on the CiviCRM GDPR extension.</p>
        </p><p> You can <a href="!url" target="blank">review the settings here</a>.</p>', array(
            '!url' => CRM_Utils_System::url('civicrm/gdpr/comms-prefs/settings')
        )
    );
-   $form = array();
+   }
+   else {
+     $notice = t('There can only be one Communications Preferences component per Webform and this form already has one. This component will not be active.');
+   }
+   $conf = $component['extra']['comms_prefs'];
+   $element = array(
+     '#type' => 'fieldset',
+     '#title' => t('Communications Preferences'),
+     '#description' => $notice,
+   );
    
-   $form['extra']['description'] = array(
-       '#markup' => $notice, 
-   );
-   $form['extra']['use_channels'] = array(
-     '#type' => 'checkbox',
-     '#title' => t('Enable channels section in this form.'),
-   );
-   $form['extra']['use_groups'] = array(
-     '#type' => 'checkbox',
-     '#title' => t('Enable groups section in this form.'),
-   );
+   if (!$disable) {
+     $element['use_channels'] = array(
+       '#type' => 'checkbox',
+       '#title' => t('Enable Communication Preferences channel opt-in.'),
+       '#value' => TRUE,
+       '#attributes' => array('disabled' => 1),
+     );
+     $element['use_groups'] = array(
+       '#type' => 'checkbox',
+       '#title' => t('Enable groups subscription.'),
+       '#default_value' => $conf['use_groups'],
+     );
+     $element['channel_element_type'] = array(
+       '#type' => 'select',
+       '#title' => t('Element type for channel opt-ins.'),
+       '#options' => ['radios' => t('Use Yes/No Radios'), 'select' => t('Use a Select element')],
+       '#default_value' => $conf['channel_element_type'],
+     );
+   }
+   $form['extra']['comms_prefs'] = $element;
    return $form;
 }
 

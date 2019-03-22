@@ -79,6 +79,17 @@ function webform_gdpr_form_webform_client_form_alter(&$form, &$form_state) {
 }
 
 /**
+ * 
+ */
+function webform_gdpr_validate_gdpr($element, &$form_state) {
+  if (empty($element['#value']) && $element['#required'] ) {
+    $msg = t("Please check %name.", array('%name' => strip_tags($element['#title'])));
+    form_error($element, $msg);
+    
+  }
+}
+
+/**
  * Validation callback function for Comms Prefs element.
  * 
  */
@@ -163,8 +174,6 @@ function webform_gdpr_submit(&$form, &$form_state) {
     WebformGDPRCommsPrefs::processCommsPrefs($component, $values, $contact_id);    
   }
 }
-
-
 
 /**
  * Returns gdpr components for a webform.

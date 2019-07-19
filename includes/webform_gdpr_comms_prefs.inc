@@ -5,36 +5,36 @@
  */
 use CRM_Gdpr_CommunicationsPreferences_Utils as U;
 
-/** 
+/**
  * Helper class for the Communications Preferences component.
  */
 class WebformGDPRCommsPrefs {
- 
+
   /**
    * Render webform component.
-   * 
+   *
    * @param array $component
    * @param array $value
    * @param boolean $filter
    * @return array
    */
   public static function render($component, $value = NULL, $filter = TRUE) {
-    
+
     $component_settings = $component['extra']['comms_prefs'];
     $use_channels = !empty($component_settings['use_channels']);
     $use_groups = !empty($component_settings['use_groups']);
     $settings = U::getSettings();
     $general_settings = $settings[U::SETTING_NAME];
-    
+
     $group_settings = $settings[U::GROUP_SETTING_NAME];
-    uasort($group_settings, function($a, $b) { 
+    uasort($group_settings, function($a, $b) {
       return $a['group_weight'] - $b['group_weight'];
     });
     $elem = array(
       '#weight' => $component['weight'],
       '#element_validate' => ['webform_gdpr_validate_comms_prefs'],
     );
-    
+
     if ($use_channels) {
       $channel_elems = array(
         '#type' => 'fieldset',
@@ -43,7 +43,7 @@ class WebformGDPRCommsPrefs {
         '#attributes' => ['class' => ['gdpr-comms-prefs-channels-wrapper']],
       );
       $contact = self::getLoggedInContact();
-      
+
       foreach (U::getChannelOptions() as $channel => $label) {
         if (empty($general_settings['channels']['enable_' . $channel])) {
           continue;
@@ -52,31 +52,34 @@ class WebformGDPRCommsPrefs {
         $options = array('YES' => t('Yes'), 'NO' => t('No'));
         $channel_elems[$channel] = array(
           '#type' => $elem_type,
-          '#title' => $label, 
+          '#title' => $label,
           // Option values compatible with the form elements provided by the extension.
-          '#options' => $options, 
+          '#options' => $options,
           '#required' => TRUE,
           '#prefix' => '<div class="webform-container-inline">',
           '#suffix' => '</div>',
           '#attributes' => ['data-channel' => $channel],
-        ); 
+        );
         // Set default values based on contact properties.
         // We can only really determine the negatives.
         $is_no = !empty($contact['do_not_' . $channel]);
         $is_opt_out = $channel == 'email' && !empty($contact['is_opt_out']);
         $is_no_post = $channel == 'post' && !empty($contact['do_not_mail']);
         if ($is_no || $is_opt_out || $is_no_post) {
-          $channel_elems[$channel]['#default_value'] = 'NO'; 
+          $channel_elems[$channel]['#default_value'] = 'NO';
+        }
+        else {
+          $channel_elems[$channel]['#default_value'] = 'YES';
         }
       }
       $elem['channels'] = $channel_elems;
     }
-  
+
     if ($use_groups) {
       $group_elems = array(
         '#type' => 'fieldset',
         '#title' => $general_settings['groups_heading'],
-        '#description' => filter_xss($general_settings['groups_intro']), 
+        '#description' => filter_xss($general_settings['groups_intro']),
         '#attributes' => ['class' => ['gdpr-comms-prefs-groups-wrapper']],
       );
       // Convenience function to extract channels.
@@ -95,7 +98,7 @@ class WebformGDPRCommsPrefs {
         if (empty($group_setting['group_enable'])) {
           continue;
         }
-        $description = filter_xss($group_setting['group_description']); 
+        $description = filter_xss($group_setting['group_description']);
         // @todo: provide user settings for group-channel display.
         // Channels are available as a property of the element, as a html data property and in the description.
         $grp_chans = $group_channels($group_setting);
@@ -118,10 +121,10 @@ class WebformGDPRCommsPrefs {
     }
     return $elem;
   }
- 
+
   /**
    * Display a webform submission value for this component.
-   * 
+   *
    * @param array $component
    * @param array $values
    * @param string $format
@@ -145,7 +148,7 @@ class WebformGDPRCommsPrefs {
     );
     $grp_str = '';
     foreach ($values['groups'] as $key => $value) {
-      $grp_str .= $group_settings[$key]['group_title'] . ': ' . $value . $nl; 
+      $grp_str .= $group_settings[$key]['group_title'] . ': ' . $value . $nl;
     }
     $elem['groups'] = array(
       '#type' => 'fieldset',
@@ -156,10 +159,10 @@ class WebformGDPRCommsPrefs {
     );
     return $elem;
   }
-  
+
   /**
    * Gets a contact's group memberships.
-   * 
+   *
    * @param int $contact_id
    * @return boolean[]
    *   Array keyed by group id.
@@ -175,17 +178,17 @@ class WebformGDPRCommsPrefs {
     }
     $results = self::crm('GroupContact', 'get', [
       'contact_id' => $contact_id,
-      'sequential' => FALSE,      
+      'sequential' => FALSE,
     ]);
     foreach ($results['values'] as $contact_group) {
       $return[$contact_group['group_id']] = empty($contact_group['status']) || $contact_group['status'] != 'Removed';
     }
     return $return;
   }
-  
+
   /**
    * Get contact of the current user.
-   * 
+   *
    * @return []
    */
   public static function getLoggedInContact() {
@@ -199,13 +202,13 @@ class WebformGDPRCommsPrefs {
     }
     return $return;
   }
-  
+
   /**
    * Process submission of a Comms Prefs component.
-   * 
+   *
    * This is called after values have been saved to webform, so we
    * are able to get entities from webform_civicrm.
-   * 
+   *
    * @param array $component
    * @param stdClass $submission
    */
@@ -219,7 +222,7 @@ class WebformGDPRCommsPrefs {
     $use_groups = !empty($component_settings['use_groups']);
     $settings = U::getSettings();
     $channel_settings = $settings[U::SETTING_NAME];
-    
+
     $contact_params = array('id' => $contact_id);
     if ($use_channels) {
       //Update contact communication preference based on channels selected
@@ -241,7 +244,7 @@ class WebformGDPRCommsPrefs {
       // Values from form.
       $group_selections = $values['groups'];
       // User current groups.
-      $current_groups = self::getContactGroups($contact_id); 
+      $current_groups = self::getContactGroups($contact_id);
       // Groups enabled in Comms Prefs settings.
       $group_settings  = $settings[U::GROUP_SETTING_NAME];
       foreach ($group_settings as $group_key => $group_setting) {
@@ -258,7 +261,7 @@ class WebformGDPRCommsPrefs {
         $is_selected = !empty($group_selections[$group_key]);
         // Does user already belong in the group?
         $is_current = !empty($current_groups[$gid]);
-        
+
         // Do we need to do anything?
         if ($is_current && !$is_selected) {
           $params['status'] = 'Removed';
@@ -272,10 +275,10 @@ class WebformGDPRCommsPrefs {
       }
     }
   }
- 
+
   /**
    * Wrapper for the CiviCRM API.
-   * 
+   *
    * @param string $entity
    * @param string $method
    * @param array $params
@@ -287,7 +290,7 @@ class WebformGDPRCommsPrefs {
       return $result;
     }
     catch (Exception $e) {
-      watchdog('webform_gdpr', 
+      watchdog('webform_gdpr',
         t('Error calling CiviCRM API: @message', [
           '@message' => $e->getMessage()
         ]

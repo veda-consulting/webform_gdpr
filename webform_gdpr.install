@@ -13,11 +13,12 @@ function webform_gdpr_requirements($phase) {
   if ($phase == 'runtime') {
     // Check for the GDPR extension.
     civicrm_initialize();
-    if (!class_exists('CRM_Gdpr_SLA_Utils')) {
+    $requirements = array();
+    if (!class_exists('CRM_Gdpr_SLA_Utils') || !method_exists('CRM_Gdpr_CommunicationsPreferences_Utils', 'createCommsPrefActivity')) {
       $extension_name = 'uk.co.vedaconsulting.gdpr';
       $params['!extension'] = l($extension_name, 'https://civicrm.org/extensions/gdpr');
       $requirements['webform_gdpr_' . $extension_name] = array(
-        'title' => t('Webform GDPR: GDPR extension not installed'),
+        'title' => t('Webform GDPR: GDPR extension 2.7+ not installed'),
         'severity' => REQUIREMENT_WARNING,
         'description' => t('The, CivicRM extension !extension is not installed or is not up to date.', $params),
       );

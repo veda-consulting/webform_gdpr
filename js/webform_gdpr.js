@@ -13,14 +13,14 @@
 		  channelSelects.each(function() {
 			  var channel = $(this).data('channel');
 			  if ($(this).val() == 'NO') {
-				optOuts.push($(this).data('channel'));  
+				optOuts.push($(this).data('channel'));
 			  }
 		  });
 		  return optOuts;
 		}
 		function processOptOutGroups() {
 		   var optOuts = getOptOutChannels();
-		   var groupsDisabled = FALSE;
+		   var groupsDisabled = false;
 		   $('.communications-preferences-group-status-msg').remove();
 		   groupsChk.each(function() {
 			  // $('.cp-group-status').remove();
@@ -36,7 +36,7 @@
 			  else {
 				  $(this).attr('disabled', false);
 			  }
-		   });	
+		   });
 		}
 		cpWrapper.find("input,select").change(function(e) {
 			processOptOutGroups();
@@ -45,5 +45,5 @@
     Drupal.behaviors.webform_gdpr = Drupal.behaviors.webform_gdpr || {};
 	Drupal.behaviors.webform_gdpr.attach = function(context) {
 		processCommsPrefs(context);
-	};  	
+	};
 })(jQuery);

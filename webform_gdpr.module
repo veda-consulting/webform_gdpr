@@ -1,7 +1,7 @@
 <?php
 /**
  * @file webform_gdpr.module
- * 
+ *
  * Module hooks and callbacks.
  */
 
@@ -51,6 +51,7 @@ function webform_gdpr_webform_component_info() {
     'description' => t('Communications Preferences'),
     'file' => 'includes/webform_gdpr_comms_prefs_component.inc',
     'value' => 1,
+    'type' => 'select',
     'features' => array(
       'analysis' => FALSE,
       'csv' => FALSE,
@@ -79,19 +80,19 @@ function webform_gdpr_form_webform_client_form_alter(&$form, &$form_state) {
 }
 
 /**
- * 
+ *
  */
 function webform_gdpr_validate_gdpr($element, &$form_state) {
   if (empty($element['#value']) && $element['#required'] ) {
     $msg = t("Please check %name.", array('%name' => strip_tags($element['#title'])));
     form_error($element, $msg);
-    
+
   }
 }
 
 /**
  * Validation callback function for Comms Prefs element.
- * 
+ *
  */
 function webform_gdpr_validate_comms_prefs($element, &$form_state) {
   // Which groups have been selected.
@@ -114,7 +115,7 @@ function webform_gdpr_validate_comms_prefs($element, &$form_state) {
       if ($channels && empty(array_intersect($channels, $selected_channels))) {
         $msg = t('You have selected @group but have opted out of all the channels that it uses.', array(
           '@group' => $elem['#title'],
-        ));   
+        ));
         form_error($elem, $msg);
       }
     }
@@ -130,7 +131,7 @@ function webform_gdpr_submit(&$form, &$form_state) {
   }
   $components = webform_gdpr_get_components($form['#node'], 'gdpr');
   $comms_prefs_components = webform_gdpr_get_components($form['#node'], 'gdpr_comms_prefs');
-  if (!$components || !$comms_prefs_components) {
+  if (!$components && !$comms_prefs_components) {
     return;
   }
 
@@ -144,7 +145,7 @@ function webform_gdpr_submit(&$form, &$form_state) {
     return;
   }
   $contacts = $submission->civicrm['contact'];
-  // Handle gdpr components. 
+  // Handle gdpr components.
   foreach ($components as $cid => $component) {
     if (!empty($submission->data[$cid])) {
       $contact_idx = $component['extra']['contact'];
@@ -171,7 +172,7 @@ function webform_gdpr_submit(&$form, &$form_state) {
       $values = unserialize($values);
     }
     $contact_id = $contacts[1]['id'];
-    WebformGDPRCommsPrefs::processCommsPrefs($component, $values, $contact_id);    
+    WebformGDPRCommsPrefs::processCommsPrefs($component, $values, $contact_id);
   }
 }
 

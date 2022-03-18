@@ -237,7 +237,10 @@ class WebformGDPRCommsPrefs {
           $contact_params = array_merge($contact_params, $param);
         }
       }
-      CRM_Core_Error::debug($contact_params);exit;
+
+      CRM_Gdpr_CommunicationsPreferences_Utils::updatePreferredComArray(
+        $contact_id, $values['channels'], $contact_params
+      );
       // Update contact.
       self::crm('Contact', 'create', $contact_params);
       // Create activity.

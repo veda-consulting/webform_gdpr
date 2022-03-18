@@ -21,7 +21,7 @@ function _webform_edit_gdpr_comms_prefs($component) {
      }
    }
    // @todo: prevent multiple instances of this component on the same form.
-   // Add a notice 
+   // Add a notice
    civicrm_initialize();
    if (!$disable) {
    $notice = t('<p>This component will add elements on the webform, using the Communications Preferences settings on the CiviCRM GDPR extension.</p>
@@ -39,7 +39,7 @@ function _webform_edit_gdpr_comms_prefs($component) {
      '#title' => t('Communications Preferences'),
      '#description' => $notice,
    );
-   
+
    if (!$disable) {
      $element['use_channels'] = array(
        '#type' => 'checkbox',
@@ -47,6 +47,36 @@ function _webform_edit_gdpr_comms_prefs($component) {
        '#value' => TRUE,
        '#attributes' => array('disabled' => 1),
      );
+
+     $element['use_channels_options_fieldset'] = [
+       '#type' => 'fieldset',
+       '#title' => t('Channels opt-in'),
+       '#id' => 'wf-crm-options-fieldset',
+     ];
+     $settings = CRM_Gdpr_CommunicationsPreferences_Utils::getSettings();
+     $general_settings = $settings[CRM_Gdpr_CommunicationsPreferences_Utils::SETTING_NAME];
+
+     foreach (CRM_Gdpr_CommunicationsPreferences_Utils::getChannelOptions() as $channel => $label) {
+       if (empty($general_settings['channels']['enable_' . $channel])) {
+         continue;
+       }
+       $defaultValue = 1;
+       if (!empty($conf['use_channels_options_fieldset'])) {
+         $defaultValue = $conf['use_channels_options_fieldset']['use_channels_options_' . $channel] ?? 0;
+       }
+       $element['use_channels_options_fieldset']['use_channels_options_' . $channel] = [
+         '#type' => 'checkbox',
+         '#title' => $label,
+         '#default_value' => $defaultValue,
+       ];
+     }
+
+     $element['use_channels_clear_defaultValue'] = array(
+       '#type' => 'checkbox',
+       '#title' => t('Do not pre-select channels opt-in.'),
+       '#default_value' => $conf['use_channels_clear_defaultValue'] ?? 0,
+     );
+
      $element['use_groups'] = array(
        '#type' => 'checkbox',
        '#title' => t('Enable groups subscription.'),

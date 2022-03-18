@@ -130,7 +130,7 @@ function webform_gdpr_submit(&$form, &$form_state) {
   }
   $components = webform_gdpr_get_components($form['#node'], 'gdpr');
   $comms_prefs_components = webform_gdpr_get_components($form['#node'], 'gdpr_comms_prefs');
-  if (!$components || !$comms_prefs_components) {
+  if (!$components && !$comms_prefs_components) {
     return;
   }
 
